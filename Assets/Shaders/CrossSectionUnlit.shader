@@ -3,10 +3,12 @@ Shader "CrossSection/Unlit" {
     Properties {
 
         _Color ("Color", Color) = (1, 1, 1, 1)
+        _Color2 ("Color2", Color) = (1, 1, 1, 1)
         _CrossSectionColor ("Cross Section Color", Color) = (1, 1, 1, 1)
         _PlanePosition ("Plane position", Vector) = (0, 0, 0, 1)
         _PlaneNormal ("Plane normal", Vector) = (0, 0, 0, 1)
         _StencilMask ("Stencil Mask", Range(0, 255)) = 255
+        _Max ("Max Depth", float) = 0
 
     }
 
@@ -31,9 +33,11 @@ Shader "CrossSection/Unlit" {
         };
 
         fixed4 _Color;
+        fixed4 _Color2;
         fixed4 _CrossSectionColor;
         fixed3 _PlaneNormal;
         fixed3 _PlanePosition;
+        float _Max;
 
         bool isVisible(fixed3 worldPos) {
             float worldDotPlane = dot(worldPos - _PlanePosition, _PlaneNormal);
@@ -43,7 +47,7 @@ Shader "CrossSection/Unlit" {
         void surf (Input i, inout SurfaceOutput o) {
             if (isVisible(i.worldPos)) discard;
             fixed4 col = _Color;
-            o.Albedo = col.rgb;
+            o.Albedo = _Color;
         }
 
         ENDCG
