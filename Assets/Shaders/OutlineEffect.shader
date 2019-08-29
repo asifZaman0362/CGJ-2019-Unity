@@ -52,14 +52,14 @@ Shader "Effects/Outline" {
                 float4 down = tex2D(_MainTex, uv - fixed2(0, _MainTex_TexelSize.y * size));
                 float4 left = tex2D(_MainTex, uv - fixed2(_MainTex_TexelSize.x * size, 0));
                 float4 right = tex2D(_MainTex, uv + fixed2(_MainTex_TexelSize.x * size, 0));
-                float4 comb = up*down*left*right;
-                return comb.r == _RefColor.r && comb.g == _RefColor.g && comb.b == _RefColor.b;
+                //float4 comb = up*down*left*right;
+                return up == _RefColor || down == _RefColor || left == _RefColor || right == _RefColor;
             }
 
 			float4 frag (v2f i) : SV_Target
 			{
                 float4 col = tex2D(_MainTex, i.uv);
-                if (col.r == _RefColor.r && col.g == _RefColor.g && col.b == _RefColor.b) return fixed4(0, 0, 0, 0);
+                if (col.r == _RefColor.r && col.g == _RefColor.g && col.b == _RefColor.b) return col;
                 if (checkNeighbours(i.uv, _Size)) {
                     return _OutlineColor * abs(sin((i.uv.x + i.uv.y) * 10)) + float4(0, 1, 0, 1) * abs(sin(i.uv.x * 10)) + float4(0, 0, 1, 1) * abs(cos(i.uv.y * 10));
                 }   

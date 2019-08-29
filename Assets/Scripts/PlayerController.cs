@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering.PostProcessing;
 using static UnityEngine.Mathf;
 
 
@@ -22,6 +23,9 @@ public class PlayerController : MonoBehaviour
 	[Header("Plane Shifting")]
 	[SerializeField] private float smoothSpeed = 0.1f;
 	[SerializeField] private LayerMask whatIsGround;
+	[SerializeField] private PostProcessProfile postProcess;
+	[SerializeField] private Color col2;
+	//[SerializeField] private PostProcessVolume volume;
 	
 	private bool jumpRequested = false;
 	private bool jump = false;
@@ -39,11 +43,18 @@ public class PlayerController : MonoBehaviour
 
 	private Vector3 velocity = Vector3.zero;
 	private Vector2 input = Vector2.zero;
+	private ChromaticAberration chromme;
+	private ColorGrading colorGrading;
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
 		targetPos = Floor(transform.position.z);
+		chromme = ScriptableObject.CreateInstance<ChromaticAberration>();
+		chromme.enabled.Override(true);
+		chromme.intensity.Override(0.2f);
+		postProcess.AddSettings(chromme);
+		colorGrading = postProcess.GetSetting<ColorGrading>();
 		//rigidbody = GetComponent<Rigidbody>();
     }
 
@@ -55,7 +66,7 @@ public class PlayerController : MonoBehaviour
 
     	timer += Time.deltaTime;
     	
-		input.x = Input.GetAxis("Horizontal") * moveSpeed / Time.timeScale;
+		input.x = Input.GetAxis("Horizontal") * moveSpeed;
 		input.y = (Input.GetAxisRaw("Vertical")) * zTraverseSpeed / Time.timeScale;
 		float inputZ = Input.GetAxisRaw("Vertical");
         float move = input.y;
@@ -80,14 +91,18 @@ public class PlayerController : MonoBehaviour
 		if (Abs(controller.velocity.z) > 0 && Abs(move) > 0) {
 			slowmofactor -= smoothSpeed;
 			slowmofactor = Clamp(slowmofactor, 1, 10);
-			Time.timeScale = Clamp(Log10(slowmofactor), 0.1f, 1);
+			Time.timeScale = Clamp(Log10(slowmofactor), 0.3f, 1);
 			Time.fixedDeltaTime = 0.2f * Time.timeScale;
+			chromme.intensity.value = Mathf.Clamp(1 - Time.timeScale, 0.2f, 1);
+			colorGrading.colorFilter.value = Color.Lerp(col2, Color.white, Log10(slowmofactor));
 		}
 		else if(Time.timeScale != 1) {
 			slowmofactor += smoothSpeed;
 			slowmofactor = Clamp(slowmofactor, 1, 10);
-			Time.timeScale = Clamp(Log10(slowmofactor), 0.1f, 1);
+			Time.timeScale = Clamp(Log10(slowmofactor), 0.3f, 1);
 			Time.fixedDeltaTime = 0.2f * Time.timeScale;
+			chromme.intensity.value = Mathf.Clamp(1 - Time.timeScale, 0.2f, 1);
+			colorGrading.colorFilter.value = Color.Lerp(col2, Color.white, Time.timeScale);
 		}
         if (isMoveRestricted && !isGrounded) input.x = input.y = 0;
         
@@ -110,6 +125,10 @@ public class PlayerController : MonoBehaviour
 		//isMoveRestricted = (flags & CollisionFlags.Sides) == CollisionFlags.Sides;
         
     }
+
+	private void OnDestroy() {
+		postProcess.RemoveSettings<ChromaticAberration>();
+	}
 
 	private void OnDrawGizmos() {
 		Gizmos.color = Color.green;

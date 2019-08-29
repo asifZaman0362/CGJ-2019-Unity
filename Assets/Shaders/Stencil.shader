@@ -7,6 +7,7 @@ Shader "CrossSection/Stencil" {
         _Color ("MainColor", Color) = (1, 1, 1, 1)
         _StencilMask ("StencilMask", Range(0, 255)) = 255
         _UseRandom ("UseRandomColors", float) = 1
+        _ColorFrequency ("ColorChangeFrequency", float) = 0.1
     }
     SubShader {
         Tags {"RenderType" = "Transparent" "Queue" = "Transparent"}
@@ -33,6 +34,7 @@ Shader "CrossSection/Stencil" {
 
             fixed4 _Color;
             float _UseRandom;
+            float _ColorFrequency;
 
             v2f vert(app_data v) {
                 v2f o;
@@ -45,8 +47,8 @@ Shader "CrossSection/Stencil" {
                 if (_UseRandom == 0) return _Color;
                 fixed4 col;
                 col.r = abs(sin(i.wpos.z));
-                col.g = abs(cos(i.wpos.z) + cos(i.wpos.y*0.2));
-                col.b = abs(sin(i.wpos.y*0.2) + cos(i.wpos.y*0.2));
+                col.g = abs(cos(i.wpos.z) + cos(i.wpos.y*_ColorFrequency));
+                col.b = abs(sin(i.wpos.y*_ColorFrequency) + cos(i.wpos.y*_ColorFrequency));
                 col.a = 1;
                 return col;
             }
