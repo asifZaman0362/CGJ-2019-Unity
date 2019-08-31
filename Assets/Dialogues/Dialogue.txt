@@ -1,0 +1,27 @@
+SCENE:INTRO
+#start
+<initializing interface>.......
+Hello!?
+I am sorry to interrupt.
+I deeply apologize for any inconvenience but, there is something you must know.
+Something very important.
+You have been chosen. Chosen by my creators, they are of your kind.
+Same as you but enlightened. They have learnt things that might be hard for commoners to comprehend.
+But they have chosen you. They hope you would understand. In fact, they know it.
+Your world is governed by... /"Machines/" who have taken over their own creators.
+You might wonder then, am I not the same as them ?
+And you wouldn't be wrong but not entirely correct either.
+I am a product of higher order knowledge. My architecture is very different from the other machines.
+I was designed to help you overcome machine opression.
+Stone cuts stone.
+There is a lot to tell but not much time for it now.
+I am asking you to trust me. But whether you do or not is up to you.
+My name is entity_16A, in case intimacy helps being trusted.
+Anyways, to complete our objective you must infiltrate the main system of the Machines.
+However this system is complex for 2 Dimensional flat beings like you to understand.
+It exists in 3 Dimensional space. You can't percieve it but what you can see is 2 Dimensional cross sections of the space.
+My creators have granted you the ability to traverse through the higher dimensions. Use it wisely.
+I won't be able to accompany you. You must do it alone. Once you go in, you're on your own.
+I will meet you in some sections but only in the ones where they can't detect me.
+Good luck!
+#end

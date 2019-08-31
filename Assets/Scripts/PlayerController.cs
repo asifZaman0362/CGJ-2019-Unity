@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.Rendering.PostProcessing;
 using static UnityEngine.Mathf;
 
@@ -20,11 +21,14 @@ public class PlayerController : MonoBehaviour
 	[SerializeField] private float gravityScale = 6.5f;
 	[SerializeField] private float gravity = 4;
 	[SerializeField] private float extentSize = 1.5f;
+	[SerializeField] private AudioSource audioSource;
+	[SerializeField] private AudioClip jumpAudio;
 	[Header("Plane Shifting")]
 	[SerializeField] private float smoothSpeed = 0.1f;
 	[SerializeField] private LayerMask whatIsGround;
 	[SerializeField] private PostProcessProfile postProcess;
 	[SerializeField] private Color col2;
+	[SerializeField] private bool freeMove = false;
 	//[SerializeField] private PostProcessVolume volume;
 	
 	private bool jumpRequested = false;
@@ -40,11 +44,15 @@ public class PlayerController : MonoBehaviour
 	private float zDir = 0;
 	private float lastFrameInputZ = 0;
 	private float targetPos = 0;
+	private float timeScale;
+	private float fixedDeltaTime;
 
 	private Vector3 velocity = Vector3.zero;
 	private Vector2 input = Vector2.zero;
 	private ChromaticAberration chromme;
 	private ColorGrading colorGrading;
+
+	[HideInInspector] public bool ScaleOut = false;
 
     void Start()
     {
@@ -61,6 +69,11 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
 
+		if (ScaleOut) {
+			transform.localScale = Vector3.MoveTowards(transform.localScale, Vector3.zero, 0.1f);
+			return;
+		}
+
 		zPos = transform.position.z;
 		isMoveRestricted = Physics.OverlapBox(transform.position, transform.localScale / extentSize - Vector3.up * 0.2f, Quaternion.identity, whatIsGround).Length > 0;
 
@@ -71,7 +84,7 @@ public class PlayerController : MonoBehaviour
 		float inputZ = Input.GetAxisRaw("Vertical");
         float move = input.y;
 
-		if (Abs(inputZ) <= 0) {
+		if (Abs(inputZ) <= 0 && !freeMove) {
             if (Abs(lastFrameInputZ) > 0) {
                 if (isMoveRestricted) targetPos = RoundToInt(transform.position.z);
                 else targetPos = lastFrameInputZ > 0 ? Ceil(transform.position.z) : Floor(transform.position.z);
@@ -111,10 +124,10 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetButtonDown("Jump")) {
         	timer = 0f;
-			if (isGrounded) { jump = true; jumpRequested = false; }
+			if (isGrounded) { jump = true; jumpRequested = false; audioSource.clip = jumpAudio; audioSource.Play(); }
 			else jumpRequested = true;
         }
-        else if (timer < jumpRememberLimit && jumpRequested && isGrounded) { jump = true; jumpRequested = false; }
+        else if (timer < jumpRememberLimit && jumpRequested && isGrounded) { jump = true; jumpRequested = false; audioSource.clip = jumpAudio; audioSource.Play(); }
         else jump = false;
         
         velocity = new Vector3(input.x, (jump && isGrounded) ? jumpSpeed : isGrounded ? 0 : velocity.y, move);
@@ -130,14 +143,8 @@ public class PlayerController : MonoBehaviour
 		postProcess.RemoveSettings<ChromaticAberration>();
 	}
 
-	private void OnDrawGizmos() {
-		Gizmos.color = Color.green;
-		Gizmos.DrawCube(transform.position, transform.localScale * 1.01f);
-		Gizmos.color = Color.white;
-	}
-
 	private void OnTriggerEnter(Collider coll) {
-		if (coll.gameObject.layer == 13) {Debug.Log("Laevel"); Destroy(coll.gameObject);}
+		//if (coll.gameObject.layer == 13) {Debug.Log("Laevel"); Destroy(coll.gameObject);}
 	}
     
 }

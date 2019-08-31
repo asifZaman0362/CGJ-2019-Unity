@@ -7,6 +7,7 @@ public class DeadZone : MonoBehaviour {
     }
     private void OnTriggerEnter(Collider coll) {
         if (coll.gameObject.CompareTag("Player")) {
+            playerPos.z = coll.gameObject.transform.position.z;
             coll.gameObject.transform.position = playerPos;
         }
     }
