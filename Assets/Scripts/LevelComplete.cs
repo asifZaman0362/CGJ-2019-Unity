@@ -37,9 +37,8 @@ public class LevelComplete : MonoBehaviour {
         }
         yield return null;
         int index = SceneManager.GetActiveScene().buildIndex + 1;
-        if (SceneManager.sceneCount > index)
-            SceneManager.LoadScene(index);
-            Destroy(gameObject);
+        SceneManager.LoadScene(index);
+        Destroy(gameObject);
     }
 
 }

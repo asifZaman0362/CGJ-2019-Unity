@@ -2,6 +2,7 @@
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering.PostProcessing;
 using static UnityEngine.Mathf;
+using System.Collections;
 
 
 [RequireComponent(typeof(CharacterController), typeof(Rigidbody))]
@@ -29,6 +30,11 @@ public class PlayerController : MonoBehaviour
 	[SerializeField] private PostProcessProfile postProcess;
 	[SerializeField] private Color col2;
 	[SerializeField] private bool freeMove = false;
+	[SerializeField] private GameObject world;
+	[SerializeField] private float worldRotateSpeed = 5;
+	[SerializeField] private GameObject cullPlane;
+	[SerializeField] private bool rotation = false;
+	public bool canMove = true;
 	//[SerializeField] private PostProcessVolume volume;
 	
 	private bool jumpRequested = false;
@@ -46,6 +52,7 @@ public class PlayerController : MonoBehaviour
 	private float targetPos = 0;
 	private float timeScale;
 	private float fixedDeltaTime;
+	private bool isRotating = false;
 
 	private Vector3 velocity = Vector3.zero;
 	private Vector2 input = Vector2.zero;
@@ -74,23 +81,28 @@ public class PlayerController : MonoBehaviour
 			return;
 		}
 
-		zPos = transform.position.z;
+		zPos = (transform.forward * transform.position.z).z;
 		isMoveRestricted = Physics.OverlapBox(transform.position, transform.localScale / extentSize - Vector3.up * 0.2f, Quaternion.identity, whatIsGround).Length > 0;
 
     	timer += Time.deltaTime;
     	
 		input.x = Input.GetAxis("Horizontal") * moveSpeed;
 		input.y = (Input.GetAxisRaw("Vertical")) * zTraverseSpeed / Time.timeScale;
+		if (!canMove) input = Vector2.zero;
 		float inputZ = Input.GetAxisRaw("Vertical");
+		if (rotation) {
+			if (Input.GetKeyDown(KeyCode.Q) && !isRotating) StartCoroutine(Rotate(true));
+			else if (Input.GetKeyDown(KeyCode.E) && !isRotating) StartCoroutine(Rotate());
+		}
         float move = input.y;
 
 		if (Abs(inputZ) <= 0 && !freeMove) {
             if (Abs(lastFrameInputZ) > 0) {
-                if (isMoveRestricted) targetPos = RoundToInt(transform.position.z);
-                else targetPos = lastFrameInputZ > 0 ? Ceil(transform.position.z) : Floor(transform.position.z);
-                zDir = transform.position.z - targetPos;
+                if (isMoveRestricted) targetPos = RoundToInt((transform.forward * transform.position.z).z);
+                else targetPos = lastFrameInputZ > 0 ? Ceil((transform.forward * transform.position.z).z) : Floor((transform.forward * transform.position.z).z);
+                zDir = (transform.forward * transform.position.z).z - targetPos;
             }
-            float delta = transform.position.z - targetPos;
+            float delta = (transform.forward * transform.position.z).z - targetPos;
             zDir = -Sign(delta);
             if (Abs(delta) < 0.15f) {
                 controller.Move(-Vector3.forward * delta);
@@ -101,7 +113,7 @@ public class PlayerController : MonoBehaviour
 		lastFrameInputZ = inputZ;
 		//if (isMoveRestricted) { input.y = 0; }
 		
-		if (Abs(controller.velocity.z) > 0 && Abs(move) > 0) {
+		if (Abs((transform.forward * controller.velocity.z).z) > 0 && Abs(move) > 0) {
 			slowmofactor -= smoothSpeed;
 			slowmofactor = Clamp(slowmofactor, 1, 10);
 			Time.timeScale = Clamp(Log10(slowmofactor), 0.3f, 1);
@@ -130,7 +142,7 @@ public class PlayerController : MonoBehaviour
         else if (timer < jumpRememberLimit && jumpRequested && isGrounded) { jump = true; jumpRequested = false; audioSource.clip = jumpAudio; audioSource.Play(); }
         else jump = false;
         
-        velocity = new Vector3(input.x, (jump && isGrounded) ? jumpSpeed : isGrounded ? 0 : velocity.y, move);
+        velocity = transform.right * input.x + Vector3.up * ((jump && isGrounded) ? jumpSpeed : isGrounded ? 0 : velocity.y) + transform.forward * move;
         velocity += !isGrounded ? Physics.gravity * gravityMultiplier * Time.deltaTime : Vector3.zero;
 
         CollisionFlags flags = controller.Move(velocity * Time.deltaTime);
@@ -145,6 +157,20 @@ public class PlayerController : MonoBehaviour
 
 	private void OnTriggerEnter(Collider coll) {
 		//if (coll.gameObject.layer == 13) {Debug.Log("Laevel"); Destroy(coll.gameObject);}
+	}
+
+	private IEnumerator Rotate(bool right = false) {
+		float i = 0;
+		isRotating = true;
+		cullPlane.SetActive(false);
+		while (i < 90) {
+			i += worldRotateSpeed;
+			world.transform.RotateAround(transform.position, Vector3.up * (right ? -1 : 1), worldRotateSpeed);
+			yield return new WaitForEndOfFrame();
+		}
+		cullPlane.SetActive(true);
+		isRotating = false;
+		yield return null;
 	}
     
 }

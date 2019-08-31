@@ -6,6 +6,11 @@ public class GoToNextScene : MonoBehaviour {
 	
 	public int nextSceneIndex = 1;
 	public UnityEvent _event;
+	public bool yes = false;
+
+	void Update() {
+		if (yes) GotoScene(nextSceneIndex);
+	}
 
 	public void GotoScene(int index = -1) {
 		if (index != -1) SceneManager.LoadScene(index);
